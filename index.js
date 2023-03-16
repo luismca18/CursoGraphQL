@@ -1,7 +1,5 @@
 const {ApolloServer,gql}=require('apollo-server');
 
-
-
 //Schema
 const typeDefs=gql`
     type Curso{
@@ -36,12 +34,12 @@ const cursos = [
 //resolvers
 const resolvers={
     Query:{
-            obtenerCursos : ()=> curso[0]
+       obtenerCursos : ()=> cursos[0]
     }
 }
 
 //Servidor
-const server=new ApolloServer({
+const server = new ApolloServer({
     typeDefs,
     resolvers
 });
