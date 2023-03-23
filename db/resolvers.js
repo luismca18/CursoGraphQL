@@ -1,7 +1,9 @@
 const Usuario =require('../models/Usuario');
+const Producto = require('../models/Producto');
+const Cliente = require('../models/Cliente');
 const bcryptjs=require('bcryptjs');
 const jwt=require('jsonwebtoken');
-const Producto = require('../models/Producto');
+
 require('dotenv').config({path:'variables.env'});
 
 
@@ -33,6 +35,36 @@ const resolvers={
                 throw new Error('Producto no encontrado');
             }
             return producto;
+        },
+        obtenerClientes: async()=>{
+            try{
+                const clientes=await Cliente.find({});
+                return clientes;
+            }catch(error){
+                console.log(error);
+            }
+        },
+        obtenerClientesVendedor:async(_,{},ctx)=>{
+            try{
+                const clientes=await Cliente.find({vendedor:ctx.usuario.id.toString()});
+                return clientes;
+            }catch(error){
+                console.log(error);
+            }
+        },
+        obtenerCliente:async(_,{id},ctx)=>{
+            //Revisar si el cliente existe o no
+            const cliente=await Cliente.findById(id);
+
+            if(!cliente){
+                throw new Error ('Cliente no encontrado');
+            }
+
+            //quien creo el cliente puede verlo
+            if (cliente.vendedor.toString()!==ctx.usuario.id){
+                throw new Error ('no tienes las credenciales');
+            }
+            return cliente;
         }
     },
     Mutation:{
@@ -108,6 +140,28 @@ const resolvers={
             //Eliminar
             await Producto.findOneAndDelete({_id:id});
             return "Producto elminado";
+        },
+        nuevoCliente:async(_, { input }, ctx)=>{
+            console.log(ctx.usuario.id);
+            const {email}=input;
+            //verificar si el cliente ya esta registrado
+            const cliente=await Cliente.findOne({email});
+            if(cliente){
+                throw new Error('El cliente ya esta registrado');
+            }
+            const nuevoCliente =new Cliente(input);
+            nuevoCliente.vendedor=ctx.usuario.id;
+           try{
+                //Guardar en la BD
+                
+                const resultado=nuevoCliente.save(); //guardarlo
+                
+                return resultado;
+           }catch(error){
+            console.log(error);
+           }
+
+            
         }
     }
 }
