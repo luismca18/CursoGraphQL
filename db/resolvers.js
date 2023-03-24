@@ -160,8 +160,57 @@ const resolvers={
            }catch(error){
             console.log(error);
            }
+        },
+        actualizarCliente:async(_,{id,input},ctx)=>{
+            //verificar si existe o no
+            let cliente =await Cliente.findById(id);
 
-            
+            if(!cliente){
+                throw new Error ('Ese cliente no existe');
+            }
+
+            //Verificar si el vendedor es quien edita
+            if (cliente.vendedor.toString()!==ctx.usuario.id){
+                throw new Error ('no tienes las credenciales');
+            }
+
+            //guardar el cliente
+            cliente=await Cliente.findByIdAndUpdate({_id:id},input,{new:true});
+            return cliente;
+        },
+        eliminarCliente:async(_,{id},ctx)=>{
+            let cliente=await Cliente.findById(id);
+
+            if (!cliente){
+                throw new Error('Ese cliente no existe');
+            }
+
+            //Verificar si el vendedor es quien edita
+            if (cliente.vendedor.toString()!==ctx.usuario.id){
+                throw new Error ('no tienes las credenciales');
+            }
+
+            //Eliminar
+            await Cliente.findOneAndDelete({_id:id});
+            return "cliente elminado";
+        },
+        nuevoPedido: async(_,{input},ctx)=>{
+            const {cliente}=input
+
+            //verificar si el cliente existe o no
+            let clienteExiste=await Cliente.findById(cliente);
+
+            if(!clienteExiste){
+                throw new Error ('Ese cliente no existe')
+            }
+            //verificar si el cliente es del vendedor
+
+            if (clienteExiste.vendedor.toString()!==ctx.usuario.id){
+                throw new Error ('No tienes las credenciales');
+            }
+
+            //revisar que el stock este disponible
+            //asignarle un vendedor
         }
     }
 }
